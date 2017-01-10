@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Web.Http;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
+using System.Net.Http.Formatting;
+using Newtonsoft.Json;
 
 namespace RestWebAppService
 {
@@ -25,6 +27,8 @@ namespace RestWebAppService
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+
+            config.Formatters.JsonFormatter.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Unspecified;
         }
     }
 }

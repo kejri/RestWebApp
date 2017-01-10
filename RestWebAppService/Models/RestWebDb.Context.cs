@@ -25,5 +25,6 @@ namespace RestWebAppService.Models
             throw new UnintentionalCodeFirstException();
         }
     
+        public virtual DbSet<Employee> Employees { get; set; }
     }
 }

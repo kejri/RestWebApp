@@ -4,20 +4,58 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="RestWebDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityContainer Name="RestWebDbModelStoreContainer" />
-      </Schema>
-    </edmx:StorageModels>
+    <Schema Namespace="RestWebDbModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Employees">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Prijmeni" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Jmeno" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="D_Narozeni" Type="date" Nullable="false" />
+          <Property Name="Typ" Type="smallint" Nullable="false" />
+          <Property Name="Vyska" Type="numeric" Precision="6" Scale="2" Nullable="false" />
+        </EntityType>
+        <EntityContainer Name="RestWebDbModelStoreContainer">
+          <EntitySet Name="Employees" EntityType="Self.Employees" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="RestWebDbModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
-        <EntityContainer Name="RestWebDbEntities" annotation:LazyLoadingEnabled="true" />
+        <EntityContainer Name="RestWebDbEntities" annotation:LazyLoadingEnabled="true" >
+          <EntitySet Name="Employees" EntityType="RestWebDbModel.Employee" />
+        </EntityContainer>
+        <EntityType Name="Employee">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Prijmeni" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Jmeno" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="D_Narozeni" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Typ" Type="Int16" Nullable="false" />
+          <Property Name="Vyska" Type="Decimal" Nullable="false" Precision="6" Scale="2" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="RestWebDbModelStoreContainer" CdmEntityContainer="RestWebDbEntities" />
+        <EntityContainerMapping StorageEntityContainer="RestWebDbModelStoreContainer" CdmEntityContainer="RestWebDbEntities" >
+          <EntitySetMapping Name="Employees">
+            <EntityTypeMapping TypeName="RestWebDbModel.Employee">
+              <MappingFragment StoreEntitySet="Employees">
+                <ScalarProperty Name="Vyska" ColumnName="Vyska" />
+                <ScalarProperty Name="Typ" ColumnName="Typ" />
+                <ScalarProperty Name="D_Narozeni" ColumnName="D_Narozeni" />
+                <ScalarProperty Name="Jmeno" ColumnName="Jmeno" />
+                <ScalarProperty Name="Prijmeni" ColumnName="Prijmeni" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
   </edmx:Runtime>
