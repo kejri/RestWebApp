@@ -16,7 +16,7 @@ namespace RestWebAppClient.Controllers
         static string urlService = "http://localhost:50775/api/Employees";
         public ActionResult Index()
         {
-            var model = new EmployeesModel();
+            var model = new EmployeesModel(HttpContext.Session);
             var client = new HttpClient();
             var task = client.GetAsync(urlService)
                 .ContinueWith((taskwithresponse) =>
@@ -36,8 +36,8 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel();
-            var client = new HttpClient();
+            var model = new EmployeesModel(HttpContext.Session);
+            /*var client = new HttpClient();
             string url = String.Format("{0}/{1}", urlService, id);
             var task = client.GetAsync(url)
                 .ContinueWith((taskwithresponse) =>
@@ -47,13 +47,19 @@ namespace RestWebAppClient.Controllers
                     readtask.Wait();
                     model.Employee = readtask.Result;
                 });
-            task.Wait();
+            task.Wait();*/
+            model.Employee = model.Employees.FirstOrDefault<Employee>(item=>item.Id == (int)id);
+            if (model.Employee == null)
+            {
+                return HttpNotFound();
+            }
             return View(model.Employee);
         }
 
         public ActionResult Create()
         {
-            var model = new EmployeesModel();
+
+            var model = new EmployeesModel(HttpContext.Session);
             model.Employee = new Employee() { D_Narozeni = DateTime.Today, EmployeeType = EmployeeType.Ostatni };
             return View(model.Employee);
         }
@@ -89,8 +95,8 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel();
-            var client = new HttpClient();
+            var model = new EmployeesModel(HttpContext.Session);
+            /*var client = new HttpClient();
             string url = String.Format("{0}/{1}", urlService, id);
             var task = client.GetAsync(url)
                 .ContinueWith((taskwithresponse) =>
@@ -100,7 +106,12 @@ namespace RestWebAppClient.Controllers
                     readtask.Wait();
                     model.Employee = readtask.Result;
                 });
-            task.Wait();
+            task.Wait();*/
+            model.Employee = model.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+            if (model.Employee == null)
+            {
+                return HttpNotFound();
+            }
             return View(model.Employee);
         }
 
@@ -135,8 +146,8 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel();
-            var client = new HttpClient();
+            var model = new EmployeesModel(HttpContext.Session);
+            /*var client = new HttpClient();
             string url = String.Format("{0}/{1}", urlService, id);
             var task = client.GetAsync(url)
                 .ContinueWith((taskwithresponse) =>
@@ -146,7 +157,12 @@ namespace RestWebAppClient.Controllers
                     readtask.Wait();
                     model.Employee = readtask.Result;
                 });
-            task.Wait();
+            task.Wait();*/
+            model.Employee = model.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+            if (model.Employee == null)
+            {
+                return HttpNotFound();
+            }
             return View(model.Employee);
         }
 

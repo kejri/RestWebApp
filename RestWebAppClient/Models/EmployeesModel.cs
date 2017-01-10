@@ -7,6 +7,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace RestWebAppClient.Models
 {
@@ -65,18 +66,43 @@ namespace RestWebAppClient.Models
 
     public class EmployeesModel
     {
-        public List<Employee> Employees;
+        private readonly HttpSessionStateBase m_Session;
+        public EmployeesModel(HttpSessionStateBase session)
+        {
+            m_Session = session;
+        }
+        public List<Employee> Employees
+        {
+            get
+            {
+                return m_Session["Employees"] as List<Employee>;
+            }
+            set
+            {
+                m_Session["Employees"] = value;
+            }
+        }
 
-        public Employee Employee;
+        public Employee Employee
+        {
+            get
+            {
+                return m_Session["Employee"] as Employee;
+            }
+            set
+            {
+                m_Session["Employee"] = value;
+            }
+        }
 
-        private EmployeeType[] m_EmployeeTypes = EnumExtender.GetValues<EmployeeType>();
+        /*private EmployeeType[] m_EmployeeTypes = EnumExtender.GetValues<EmployeeType>();
         public EmployeeType[] EmployeeTypes
         {
             get
             {
                 return m_EmployeeTypes;
             }
-        }
+        }*/
 
     }
 }
