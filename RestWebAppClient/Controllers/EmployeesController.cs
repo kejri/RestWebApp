@@ -15,6 +15,7 @@ namespace RestWebAppClient.Controllers
     [Authorize]
     public class EmployeesController : Controller
     {
+        // konstatni prihlasovaci udaje k service
         static string urlService = "http://localhost:50775";
         static string urlServiceEmployee = urlService + "/api/Employees";
         static string adminUser = "admin@gmail.com";
@@ -26,8 +27,10 @@ namespace RestWebAppClient.Controllers
         {
             var sessionHelper = new SessionHelper(HttpContext.Session);
             var  token = sessionHelper.Token;
+            //Pokud token neni v session, pak ho nacti ze service
             if (token == null)
             {
+                //Nacti prihlasovaci udaje k nacteni tokenu ze service, dle typu prihlaseneho uzivatel
                 string username = String.Empty;
                 string password = String.Empty;
 
@@ -109,6 +112,7 @@ namespace RestWebAppClient.Controllers
             if (sessionHelper.Employees != null)
             {
                 employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+                //Pokud se employee nenasel v session, pak ho nacti ze service
                 if (employee == null)
                 {
                     var token = GetToken();
@@ -190,6 +194,7 @@ namespace RestWebAppClient.Controllers
             if (sessionHelper.Employees != null)
             {
                 employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+                //Pokud se employee nenasel v session, pak ho nacti ze service
                 if (employee == null)
                 {
                     var token = GetToken();

@@ -266,8 +266,6 @@
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="ViewModels\EmployeeType.cs" />
-    <Compile Include="ViewModels\Employee.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\RestWebAppService.mdf" />
