@@ -7,27 +7,75 @@ using System.Net.Http;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
-
+using RestWebAppClient.Helpers;
+using System.Net.Http.Headers;
 
 namespace RestWebAppClient.Controllers
 {
     public class EmployeesController : Controller
     {
-        static string urlService = "http://localhost:50775/api/Employees";
+        static string urlService = "http://localhost:50775";
+        static string urlServiceEmployee = urlService + "/api/Employees";
+        static string adminUser = "admin@email.com";
+        static string adminPassword = "Admin@123";
+
+        public AuthenticationToken GetToken(string username, string password)
+        {
+            var sessionHelper = new SessionHelper(HttpContext.Session);
+            var  token = sessionHelper.Token;
+            if (token == null)
+            {
+                using (var client = new HttpClient { BaseAddress = new Uri(urlService) })
+                {
+                    token = client.PostAsync("Token",
+                        new FormUrlEncodedContent(new[]
+                        {
+                        new KeyValuePair<string,string>("grant_type","password"),
+                        new KeyValuePair<string,string>("username", username),
+                        new KeyValuePair<string,string>("password",password)
+                        })).Result.Content.ReadAsAsync<AuthenticationToken>().Result;
+
+                    if (String.IsNullOrEmpty(token.access_token))
+                    {
+                        throw new Exception("Chybné uživatelské jméno nebo heslo.");
+                    }
+
+                    client.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue(token.token_type, token.access_token);
+
+                }
+                sessionHelper.Token = token;
+            }
+            return token;
+        }
         public ActionResult Index()
         {
-            var model = new EmployeesModel(HttpContext.Session);
-            var client = new HttpClient();
-            var task = client.GetAsync(urlService)
-                .ContinueWith((taskwithresponse) =>
-                {
-                    var response = taskwithresponse.Result;
-                    var readtask = response.Content.ReadAsAsync<List<Employee>>();
-                    readtask.Wait();
-                    model.Employees = readtask.Result;
-                });
-            task.Wait();
-            return View(model.Employees);
+            var token = GetToken(adminUser, adminPassword);
+
+            var sessionHelper = new SessionHelper(HttpContext.Session);
+            sessionHelper.Employees = null;
+            using (var client = HttpClientHelper.GetClient(token))
+            {
+                var task = client.GetAsync(urlServiceEmployee)
+                    .ContinueWith((taskwithresponse) =>
+                    {
+                        var response = taskwithresponse.Result;
+                        response.EnsureSuccessStatusCode();
+
+                        var readtask = response.Content.ReadAsAsync<List<Employee>>();
+                        readtask.Wait();
+                        sessionHelper.Employees = readtask.Result;
+
+                    }).ContinueWith((err) =>
+                    {
+                        if (err.Exception != null)
+                        {
+                            throw err.Exception;
+                        }
+                    });
+                task.Wait();
+                return View(sessionHelper.Employees);
+            }
         }
 
         public ActionResult Details(int? id)
@@ -36,57 +84,78 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel(HttpContext.Session);
-            /*var client = new HttpClient();
-            string url = String.Format("{0}/{1}", urlService, id);
-            var task = client.GetAsync(url)
-                .ContinueWith((taskwithresponse) =>
+
+            Employee employee = null;
+            var sessionHelper = new SessionHelper(HttpContext.Session);
+            if (sessionHelper.Employees != null)
+            {
+                employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+                if (employee == null)
                 {
-                    var response = taskwithresponse.Result;
-                    var readtask = response.Content.ReadAsAsync<Employee>();
-                    readtask.Wait();
-                    model.Employee = readtask.Result;
-                });
-            task.Wait();*/
-            model.Employee = model.Employees.FirstOrDefault<Employee>(item=>item.Id == (int)id);
-            if (model.Employee == null)
+                    var token = GetToken(adminUser, adminPassword);
+                    using (var client = HttpClientHelper.GetClient(token))
+                    {
+                        string url = String.Format("{0}/{1}", urlServiceEmployee, id);
+                        var task = client.GetAsync(url)
+                            .ContinueWith((taskwithresponse) =>
+                            {
+                                var response = taskwithresponse.Result;
+                                response.EnsureSuccessStatusCode();
+
+                                var readtask = response.Content.ReadAsAsync<Employee>();
+                                readtask.Wait();
+                                employee = readtask.Result;
+                            }).ContinueWith((err) =>
+                            {
+                                if (err.Exception != null)
+                                {
+                                    throw err.Exception;
+                                }
+                            });
+                        task.Wait();
+                    }
+                }
+            }
+            if (employee == null)
             {
                 return HttpNotFound();
             }
-            return View(model.Employee);
+            return View(employee);
         }
 
         public ActionResult Create()
         {
 
-            var model = new EmployeesModel(HttpContext.Session);
-            model.Employee = new Employee() { D_Narozeni = DateTime.Today, EmployeeType = EmployeeType.Ostatni };
-            return View(model.Employee);
+            var employee = new Employee() { D_Narozeni = DateTime.Today, EmployeeType = EmployeeType.Ostatni };
+            return View(employee);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] Employee data)
+        public ActionResult Create([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] Employee employee)
         {
             if (ModelState.IsValid)
             {
-                var client = new HttpClient();
-                string url = String.Format(urlService);
-                var task = client.PostAsJsonAsync<Employee>(url, data)
-                .ContinueWith((taskwithresponse) =>
+                var token = GetToken(adminUser, adminPassword);
+                using (var client = HttpClientHelper.GetClient(token))
                 {
-                    var response = taskwithresponse.Result;
-                    response.EnsureSuccessStatusCode();
-                }).ContinueWith((err) =>
-                {
-                    if (err.Exception != null)
+                    string url = String.Format(urlServiceEmployee);
+                    var task = client.PostAsJsonAsync<Employee>(url, employee)
+                    .ContinueWith((taskwithresponse) =>
                     {
-
-                    }
-                });
-                task.Wait();
+                        var response = taskwithresponse.Result;
+                        response.EnsureSuccessStatusCode();
+                    }).ContinueWith((err) =>
+                    {
+                        if (err.Exception != null)
+                        {
+                            throw err.Exception;
+                        }
+                    });
+                    task.Wait();
+                }
             }
-            return View(data);
+            return View(employee);
         }
 
         public ActionResult Edit(int? id)
@@ -95,49 +164,71 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel(HttpContext.Session);
-            /*var client = new HttpClient();
-            string url = String.Format("{0}/{1}", urlService, id);
-            var task = client.GetAsync(url)
-                .ContinueWith((taskwithresponse) =>
+
+            Employee employee = null;
+            var sessionHelper = new SessionHelper(HttpContext.Session);
+            if (sessionHelper.Employees != null)
+            {
+                employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+                if (employee == null)
                 {
-                    var response = taskwithresponse.Result;
-                    var readtask = response.Content.ReadAsAsync<Employee>();
-                    readtask.Wait();
-                    model.Employee = readtask.Result;
-                });
-            task.Wait();*/
-            model.Employee = model.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
-            if (model.Employee == null)
+                    var token = GetToken(adminUser, adminPassword);
+                    using (var client = HttpClientHelper.GetClient(token))
+                    {
+                        string url = String.Format("{0}/{1}", urlServiceEmployee, id);
+                        var task = client.GetAsync(url)
+                            .ContinueWith((taskwithresponse) =>
+                            {
+                                var response = taskwithresponse.Result;
+                                response.EnsureSuccessStatusCode();
+
+                                var readtask = response.Content.ReadAsAsync<Employee>();
+                                readtask.Wait();
+                                employee = readtask.Result;
+                            }).ContinueWith((err) =>
+                            {
+                                if (err.Exception != null)
+                                {
+                                    throw err.Exception;
+                                }
+                            });
+                        task.Wait();
+                    }
+                }
+            }
+            if (employee == null)
             {
                 return HttpNotFound();
             }
-            return View(model.Employee);
+            return View(employee);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] Employee data)
+        public ActionResult Edit([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] Employee employee)
         {
             if (ModelState.IsValid)
             {
-                var client = new HttpClient();
-                string url = String.Format("{0}/{1}", urlService, data.Id);
-                var task = client.PutAsJsonAsync<Employee>(url, data)
-                .ContinueWith((taskwithresponse) =>
+                var token = GetToken(adminUser, adminPassword);
+                using (var client = HttpClientHelper.GetClient(token))
                 {
-                    var response = taskwithresponse.Result;
-                    response.EnsureSuccessStatusCode();
-                }).ContinueWith((err) =>
-                {
-                    if (err.Exception != null)
+                    string url = String.Format("{0}/{1}", urlServiceEmployee, employee.Id);
+                    var task = client.PutAsJsonAsync<Employee>(url, employee)
+                    .ContinueWith((taskwithresponse) =>
                     {
-
-                    }
-                });
-                task.Wait();
+                        var response = taskwithresponse.Result;
+                        response.EnsureSuccessStatusCode();
+                    }).ContinueWith((err) =>
+                    {
+                        if (err.Exception != null)
+                        {
+                            throw err.Exception;
+                        }
+                    });
+                    task.Wait();
+                }
             }
-            return View(data);
+            return View(employee);
         }
 
         public ActionResult Delete(int? id)
@@ -146,46 +237,68 @@ namespace RestWebAppClient.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            var model = new EmployeesModel(HttpContext.Session);
-            /*var client = new HttpClient();
-            string url = String.Format("{0}/{1}", urlService, id);
-            var task = client.GetAsync(url)
-                .ContinueWith((taskwithresponse) =>
+
+            Employee employee = null;
+            var sessionHelper = new SessionHelper(HttpContext.Session);
+            if (sessionHelper.Employees != null)
+            {
+                employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
+                if (employee == null)
                 {
-                    var response = taskwithresponse.Result;
-                    var readtask = response.Content.ReadAsAsync<Employee>();
-                    readtask.Wait();
-                    model.Employee = readtask.Result;
-                });
-            task.Wait();*/
-            model.Employee = model.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
-            if (model.Employee == null)
+                    var token = GetToken(adminUser, adminPassword);
+                    using (var client = HttpClientHelper.GetClient(token))
+                    {
+                        string url = String.Format("{0}/{1}", urlServiceEmployee, id);
+                        var task = client.GetAsync(url)
+                            .ContinueWith((taskwithresponse) =>
+                            {
+                                var response = taskwithresponse.Result;
+                                response.EnsureSuccessStatusCode();
+
+                                var readtask = response.Content.ReadAsAsync<Employee>();
+                                readtask.Wait();
+                                employee = readtask.Result;
+                            }).ContinueWith((err) =>
+                            {
+                                if (err.Exception != null)
+                                {
+                                    throw err.Exception;
+                                }
+                            });
+                        task.Wait();
+                    }
+                }
+            }
+            if (employee == null)
             {
                 return HttpNotFound();
             }
-            return View(model.Employee);
+            return View(employee);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int? id)
         {
-            var client = new HttpClient();
-            string url = String.Format("{0}/{1}", urlService, id);
-            var task = client.DeleteAsync(url)
-            .ContinueWith((taskwithresponse) =>
+            var token = GetToken(adminUser, adminPassword);
+            using (var client = HttpClientHelper.GetClient(token))
             {
-                var response = taskwithresponse.Result;
-                response.EnsureSuccessStatusCode();
-            }).ContinueWith((err) =>
-            {
-                if (err.Exception != null)
+                string url = String.Format("{0}/{1}", urlServiceEmployee, id);
+                var task = client.DeleteAsync(url)
+                .ContinueWith((taskwithresponse) =>
                 {
-
-                }
-            });
-            task.Wait();
-            return RedirectToAction("Index");
+                    var response = taskwithresponse.Result;
+                    response.EnsureSuccessStatusCode();
+                }).ContinueWith((err) =>
+                {
+                    if (err.Exception != null)
+                    {
+                        throw err.Exception;
+                    }
+                });
+                task.Wait();
+                return RedirectToAction("Index");
+            }
         }
     }
 }

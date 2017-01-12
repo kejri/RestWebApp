@@ -1,6 +1,4 @@
-﻿using RestWebAppService.Helpers;
-using RestWebAppService.Properties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;

@@ -13,11 +13,13 @@ using RestWebAppService.Models;
 
 namespace RestWebAppService.Controllers
 {
+    [Authorize]
     public class EmployeesController : ApiController
     {
         private RestWebDbEntities db = new RestWebDbEntities();
 
         // GET: api/Employees
+        //[CustomAuthorize(Roles = "Administrators")]
         public IQueryable<Employee> GetEmployees()
         {
             return db.Employees;
@@ -34,6 +36,21 @@ namespace RestWebAppService.Controllers
             }
 
             return Ok(employee);
+        }
+
+        // POST: api/Employees
+        [ResponseType(typeof(Employee))]
+        public async Task<IHttpActionResult> PostEmployee(Employee employee)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            db.Employees.Add(employee);
+            await db.SaveChangesAsync();
+
+            return CreatedAtRoute("DefaultApi", new { id = employee.Id }, employee);
         }
 
         // PUT: api/Employees/5
@@ -69,21 +86,6 @@ namespace RestWebAppService.Controllers
             }
 
             return StatusCode(HttpStatusCode.NoContent);
-        }
-
-        // POST: api/Employees
-        [ResponseType(typeof(Employee))]
-        public async Task<IHttpActionResult> PostEmployee(Employee employee)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.Employees.Add(employee);
-            await db.SaveChangesAsync();
-
-            return CreatedAtRoute("DefaultApi", new { id = employee.Id }, employee);
         }
 
         // DELETE: api/Employees/5

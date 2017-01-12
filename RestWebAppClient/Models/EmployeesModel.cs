@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using RestWebAppClient.Helpers;
-using RestWebAppClient.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -62,47 +61,5 @@ namespace RestWebAppClient.Models
         [Required]
         [Display(Name = "Výška")]
         public decimal Vyska { get; set; }
-    }
-
-    public class EmployeesModel
-    {
-        private readonly HttpSessionStateBase m_Session;
-        public EmployeesModel(HttpSessionStateBase session)
-        {
-            m_Session = session;
-        }
-        public List<Employee> Employees
-        {
-            get
-            {
-                return m_Session["Employees"] as List<Employee>;
-            }
-            set
-            {
-                m_Session["Employees"] = value;
-            }
-        }
-
-        public Employee Employee
-        {
-            get
-            {
-                return m_Session["Employee"] as Employee;
-            }
-            set
-            {
-                m_Session["Employee"] = value;
-            }
-        }
-
-        /*private EmployeeType[] m_EmployeeTypes = EnumExtender.GetValues<EmployeeType>();
-        public EmployeeType[] EmployeeTypes
-        {
-            get
-            {
-                return m_EmployeeTypes;
-            }
-        }*/
-
     }
 }
