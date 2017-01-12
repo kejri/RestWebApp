@@ -19,7 +19,7 @@ namespace RestWebAppService.Controllers
         private RestWebDbEntities db = new RestWebDbEntities();
 
         // GET: api/Employees
-        //[CustomAuthorize(Roles = "Administrators")]
+        [Authorize(Roles = "Administrators")]
         public IQueryable<Employee> GetEmployees()
         {
             return db.Employees;
@@ -27,6 +27,7 @@ namespace RestWebAppService.Controllers
 
         // GET: api/Employees/5
         [ResponseType(typeof(Employee))]
+        [Authorize(Roles = "Administrators")]
         public async Task<IHttpActionResult> GetEmployee(int id)
         {
             Employee employee = await db.Employees.FindAsync(id);
@@ -55,6 +56,7 @@ namespace RestWebAppService.Controllers
 
         // PUT: api/Employees/5
         [ResponseType(typeof(void))]
+        [Authorize(Roles = "Administrators")]
         public async Task<IHttpActionResult> PutEmployee(int id, Employee employee)
         {
             if (!ModelState.IsValid)
@@ -90,6 +92,7 @@ namespace RestWebAppService.Controllers
 
         // DELETE: api/Employees/5
         [ResponseType(typeof(Employee))]
+        [Authorize(Roles = "Administrators")]
         public async Task<IHttpActionResult> DeleteEmployee(int id)
         {
             Employee employee = await db.Employees.FindAsync(id);

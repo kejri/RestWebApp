@@ -12,19 +12,35 @@ using System.Net.Http.Headers;
 
 namespace RestWebAppClient.Controllers
 {
+    [Authorize]
     public class EmployeesController : Controller
     {
         static string urlService = "http://localhost:50775";
         static string urlServiceEmployee = urlService + "/api/Employees";
-        static string adminUser = "admin@email.com";
-        static string adminPassword = "Admin@123";
+        static string adminUser = "admin@gmail.com";
+        static string adminPassword = "Admin@1";
+        static string userUser = "user@gmail.com";
+        static string userPassword = "User@1";
 
-        public AuthenticationToken GetToken(string username, string password)
+        public AuthenticationToken GetToken()
         {
             var sessionHelper = new SessionHelper(HttpContext.Session);
             var  token = sessionHelper.Token;
             if (token == null)
             {
+                string username = String.Empty;
+                string password = String.Empty;
+
+                if (HttpContext.User.IsInRole("Administrators"))
+                {
+                    username = adminUser;
+                    password = adminPassword;
+                }
+                else if (HttpContext.User.IsInRole("Users"))
+                {
+                    username = userUser;
+                    password = userPassword;
+                }
                 using (var client = new HttpClient { BaseAddress = new Uri(urlService) })
                 {
                     token = client.PostAsync("Token",
@@ -48,9 +64,11 @@ namespace RestWebAppClient.Controllers
             }
             return token;
         }
+
+        [Authorize(Roles = "Administrators")]
         public ActionResult Index()
         {
-            var token = GetToken(adminUser, adminPassword);
+            var token = GetToken();
 
             var sessionHelper = new SessionHelper(HttpContext.Session);
             sessionHelper.Employees = null;
@@ -78,6 +96,7 @@ namespace RestWebAppClient.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrators")]
         public ActionResult Details(int? id)
         {
             if (id == null)
@@ -92,7 +111,7 @@ namespace RestWebAppClient.Controllers
                 employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
                 if (employee == null)
                 {
-                    var token = GetToken(adminUser, adminPassword);
+                    var token = GetToken();
                     using (var client = HttpClientHelper.GetClient(token))
                     {
                         string url = String.Format("{0}/{1}", urlServiceEmployee, id);
@@ -136,7 +155,7 @@ namespace RestWebAppClient.Controllers
         {
             if (ModelState.IsValid)
             {
-                var token = GetToken(adminUser, adminPassword);
+                var token = GetToken();
                 using (var client = HttpClientHelper.GetClient(token))
                 {
                     string url = String.Format(urlServiceEmployee);
@@ -158,6 +177,7 @@ namespace RestWebAppClient.Controllers
             return View(employee);
         }
 
+        [Authorize(Roles = "Administrators")]
         public ActionResult Edit(int? id)
         {
             if (id == null)
@@ -172,7 +192,7 @@ namespace RestWebAppClient.Controllers
                 employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
                 if (employee == null)
                 {
-                    var token = GetToken(adminUser, adminPassword);
+                    var token = GetToken();
                     using (var client = HttpClientHelper.GetClient(token))
                     {
                         string url = String.Format("{0}/{1}", urlServiceEmployee, id);
@@ -205,11 +225,12 @@ namespace RestWebAppClient.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrators")]
         public ActionResult Edit([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] Employee employee)
         {
             if (ModelState.IsValid)
             {
-                var token = GetToken(adminUser, adminPassword);
+                var token = GetToken();
                 using (var client = HttpClientHelper.GetClient(token))
                 {
                     string url = String.Format("{0}/{1}", urlServiceEmployee, employee.Id);
@@ -231,6 +252,7 @@ namespace RestWebAppClient.Controllers
             return View(employee);
         }
 
+        [Authorize(Roles = "Administrators")]
         public ActionResult Delete(int? id)
         {
             if (id == null)
@@ -245,7 +267,7 @@ namespace RestWebAppClient.Controllers
                 employee = sessionHelper.Employees.FirstOrDefault<Employee>(item => item.Id == (int)id);
                 if (employee == null)
                 {
-                    var token = GetToken(adminUser, adminPassword);
+                    var token = GetToken();
                     using (var client = HttpClientHelper.GetClient(token))
                     {
                         string url = String.Format("{0}/{1}", urlServiceEmployee, id);
@@ -278,9 +300,10 @@ namespace RestWebAppClient.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrators")]
         public ActionResult DeleteConfirmed(int? id)
         {
-            var token = GetToken(adminUser, adminPassword);
+            var token = GetToken();
             using (var client = HttpClientHelper.GetClient(token))
             {
                 string url = String.Format("{0}/{1}", urlServiceEmployee, id);
