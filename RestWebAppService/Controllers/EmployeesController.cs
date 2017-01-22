@@ -2,109 +2,138 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Http;
-using System.Web.Http.Description;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
 using RestWebAppService.Models;
 
 namespace RestWebAppService.Controllers
 {
-    [Authorize]
-    public class EmployeesController : ApiController
+    [Authorize (Roles = "Administrators")]
+    public class EmployeesController : Controller
     {
         private RestWebDbEntities db = new RestWebDbEntities();
 
-        // GET: api/Employees
-        [Authorize(Roles = "Administrators")]
-        public IQueryable<Employee> GetEmployees()
+        // GET: Employees
+        public async Task<ActionResult> Index()
         {
-            return db.Employees;
+            var employees = await db.Employees.ToListAsync();
+            var employeesVM = new List<RestWebAppService.ViewModels.Employee>();
+            foreach (var employee in employees)
+            {
+                var employeeVM = new RestWebAppService.ViewModels.Employee();
+                employeeVM.Read(employee);
+                employeesVM.Add(employeeVM);
+            }
+            return View(employeesVM);
         }
 
-        // GET: api/Employees/5
-        [ResponseType(typeof(Employee))]
-        [Authorize(Roles = "Administrators")]
-        public async Task<IHttpActionResult> GetEmployee(int id)
+        // GET: Employees/Details/5
+        public async Task<ActionResult> Details(int? id)
         {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
             Employee employee = await db.Employees.FindAsync(id);
             if (employee == null)
             {
-                return NotFound();
+                return HttpNotFound();
             }
-
-            return Ok(employee);
+            var employeeVM = new RestWebAppService.ViewModels.Employee();
+            employeeVM.Read(employee);
+            return View(employeeVM);
         }
 
-        // POST: api/Employees
-        [ResponseType(typeof(Employee))]
-        public async Task<IHttpActionResult> PostEmployee(Employee employee)
+        // GET: Employees/Create
+        public ActionResult Create()
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.Employees.Add(employee);
-            await db.SaveChangesAsync();
-
-            return CreatedAtRoute("DefaultApi", new { id = employee.Id }, employee);
+            var employeeVM = new RestWebAppService.ViewModels.Employee() { D_Narozeni = DateTime.Today, EmployeeType = RestWebAppService.ViewModels.EmployeeType.Ostatni };
+            return View(employeeVM);
         }
 
-        // PUT: api/Employees/5
-        [ResponseType(typeof(void))]
-        [Authorize(Roles = "Administrators")]
-        public async Task<IHttpActionResult> PutEmployee(int id, Employee employee)
+        // POST: Employees/Create
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Create([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] RestWebAppService.ViewModels.Employee employeeVM)
         {
-            if (!ModelState.IsValid)
+            var employee = new Employee();
+            employeeVM.Write(employee);
+            if (ModelState.IsValid)
             {
-                return BadRequest(ModelState);
-            }
-
-            if (id != employee.Id)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(employee).State = EntityState.Modified;
-
-            try
-            {
+                db.Employees.Add(employee);
                 await db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return RedirectToAction("Index");
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+            return View(employeeVM);
         }
 
-        // DELETE: api/Employees/5
-        [ResponseType(typeof(Employee))]
-        [Authorize(Roles = "Administrators")]
-        public async Task<IHttpActionResult> DeleteEmployee(int id)
+        // GET: Employees/Edit/5
+        public async Task<ActionResult> Edit(int? id)
         {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
             Employee employee = await db.Employees.FindAsync(id);
             if (employee == null)
             {
-                return NotFound();
+                return HttpNotFound();
             }
+            var employeeVM = new RestWebAppService.ViewModels.Employee();
+            employeeVM.Read(employee);
+            return View(employeeVM);
+        }
 
+        // POST: Employees/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit([Bind(Include = "Id,Prijmeni,Jmeno,D_Narozeni,EmployeeType,Vyska")] RestWebAppService.ViewModels.Employee employeeVM)
+        {
+            var employee = new Employee();
+            employeeVM.Write(employee);
+            if (ModelState.IsValid)
+            {
+                db.Entry(employee).State = EntityState.Modified;
+                await db.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
+            return View(employeeVM);
+        }
+
+        // GET: Employees/Delete/5
+        public async Task<ActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Employee employee = await db.Employees.FindAsync(id);
+            if (employee == null)
+            {
+                return HttpNotFound();
+            }
+            var employeeVM = new RestWebAppService.ViewModels.Employee();
+            employeeVM.Read(employee);
+            return View(employeeVM);
+        }
+
+        // POST: Employees/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteConfirmed(int id)
+        {
+            Employee employee = await db.Employees.FindAsync(id);
             db.Employees.Remove(employee);
             await db.SaveChangesAsync();
-
-            return Ok(employee);
+            return RedirectToAction("Index");
         }
 
         protected override void Dispose(bool disposing)
@@ -114,11 +143,6 @@ namespace RestWebAppService.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            return db.Employees.Count(e => e.Id == id) > 0;
         }
     }
 }

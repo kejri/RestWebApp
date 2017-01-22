@@ -1047,7 +1047,11 @@ $.extend($.validator, {
 
 		// http://docs.jquery.com/Plugins/Validation/Methods/number
 		number: function( value, element ) {
-			return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test(value);
+			//return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/.test(value);
+		    $.culture = Globalize.culture("cs-CZ");
+		    var date = Globalize.parseNumber(value, "d.M.yyyy", "cs-CZ");
+		    return this.optional(element) ||
+                           !/Invalid|NaN/.test(new Date(date).toString());
 		},
 
 		// http://docs.jquery.com/Plugins/Validation/Methods/digits

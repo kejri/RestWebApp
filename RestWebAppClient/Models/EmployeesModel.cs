@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using RestWebAppClient.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -44,7 +43,7 @@ namespace RestWebAppClient.Models
         public short Typ { get; set; }
 
         [Required]
-        [Display(Name = "Typ zeměstnance")]
+        [Display(Name = "Typ zaměstnance")]
         [JsonIgnore]
         public EmployeeType EmployeeType
         {

@@ -1,17 +1,20 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RestWebAppServer.Models
+namespace RestWebAppService.Models
 {
     [MetadataType(typeof(Employee.MetaData))]
     public partial class Employee
     {
         internal class MetaData
         {
+            [ScaffoldColumn(false)]//nebude nikde zobrazen
             public int Id { get; set; }
 
             [Required]
@@ -23,10 +26,13 @@ namespace RestWebAppServer.Models
             public string Jmeno { get; set; }
 
             [Required]
-            [Display(Name = "Datum narození")]
-            [DisplayFormat(DataFormatString = "{0:d.M.yyyy}")]
+            [DataType(DataType.Date)]
+            [Display(Name = "D. Narození")]
+            [DisplayFormat(DataFormatString = "{0:d.M.yyyy}", ApplyFormatInEditMode = true)]
             public System.DateTime D_Narozeni { get; set; }
 
+            [Required]
+            [Display(Name = "Typ")]
             public short Typ { get; set; }
 
             [Required]

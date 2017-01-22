@@ -30,17 +30,5 @@ namespace RestWebAppClient.Helpers
                 m_Session["Token"] = value;
             }
         }
-
-        public List<Employee> Employees
-        {
-            get
-            {
-                return m_Session["Employees"] as List<Employee>;
-            }
-            set
-            {
-                m_Session["Employees"] = value;
-            }
-        }
     }
 }

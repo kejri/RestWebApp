@@ -5,12 +5,12 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestWebAppService", "RestWebAppService\RestWebAppService.csproj", "{B4873767-D392-4D12-B6A2-BB83338CE74C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestWebAppClient", "RestWebAppClient\RestWebAppClient.csproj", "{8975517B-4306-4E9D-9B48-07FE377D5277}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CD24777A-4BE1-4771-A3BE-54D5F09CDAAE}"
 	ProjectSection(SolutionItems) = preProject
 		Readme.txt = Readme.txt
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestWebAppClient", "RestWebAppClient\RestWebAppClient.csproj", "{BC075C59-9FBC-47D5-A21C-A644F1FC7915}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +22,10 @@ Global
 		{B4873767-D392-4D12-B6A2-BB83338CE74C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4873767-D392-4D12-B6A2-BB83338CE74C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4873767-D392-4D12-B6A2-BB83338CE74C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8975517B-4306-4E9D-9B48-07FE377D5277}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8975517B-4306-4E9D-9B48-07FE377D5277}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8975517B-4306-4E9D-9B48-07FE377D5277}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8975517B-4306-4E9D-9B48-07FE377D5277}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC075C59-9FBC-47D5-A21C-A644F1FC7915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC075C59-9FBC-47D5-A21C-A644F1FC7915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC075C59-9FBC-47D5-A21C-A644F1FC7915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC075C59-9FBC-47D5-A21C-A644F1FC7915}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
